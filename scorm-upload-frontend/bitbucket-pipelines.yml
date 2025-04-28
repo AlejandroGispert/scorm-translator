@@ -1,13 +1,15 @@
-# bitbucket-pipelines.yml
-image: node:18
+image: atlassian/default-image:2
 
 pipelines:
   default:
     - step:
-        name: Build and Test
-        caches:
-          - node
+        name: Sync Bitbucket to GitHub
         script:
-          - npm install
-          - npm run build
-          # - npm test   # Uncomment if you have tests
+          - apt-get update
+          - apt-get install -y git
+          - git clone https://ag-sound-admin@bitbucket.org/ag-sound/scorm-upload-project.git
+          - cd your-bitbucket-repo
+          - git remote add github https://github.com/AlejandroGispert/scorm-translator.git
+          - git config user.email "alejandrobusiness2022@gmail.com"
+          - git config user.name "AlejandroGispert"
+          - git push github main
