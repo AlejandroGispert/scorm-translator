@@ -11,7 +11,7 @@ export default function Home() {
     setFile(e.target.files?.[0] || null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!file) {
@@ -43,7 +43,7 @@ export default function Home() {
         setTimeout(() => window.URL.revokeObjectURL(url), 1000);
         setUploadUrl('Download started!');
       } else {
-        let result = {};
+        let result: { message?: string } = {};
         try {
           result = await res.json();
         } catch {
@@ -52,7 +52,11 @@ export default function Home() {
         setError(result.message || 'Something went wrong.');
       }
     } catch (err) {
-      setError('File upload failed: ' + err.message);
+      if (err instanceof Error) {
+        setError('File upload failed: ' + err.message);
+      } else {
+        setError('File upload failed: Unknown error');
+      }
     } finally {
       setUploading(false);
     }
