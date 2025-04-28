@@ -2,13 +2,13 @@ import { useState } from 'react';
 
 
 export default function Home() {
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadUrl, setUploadUrl] = useState(null);
-  const [error, setError] = useState(null);
+  const [uploadUrl, setUploadUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFile(e.target.files?.[0] || null);
   };
 
   const handleSubmit = async (e) => {
