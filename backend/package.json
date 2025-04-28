@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/glob": "^8.1.0",
     "@types/multer": "^1.4.12",
