@@ -5,6 +5,7 @@ import Head from 'next/head';
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [translating, setTranslating] = useState(false);
   const [uploadUrl, setUploadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +25,7 @@ export default function Home() {
     formData.append('scorm', file);
 
     setUploading(true);
+    setTranslating(false);
     setError(null);
 
     try {
@@ -32,8 +34,12 @@ export default function Home() {
         body: formData,
       });
 
+      setUploading(false);
+      setTranslating(true);
+
       if (res.status === 200 && res.headers.get('content-type') === 'application/zip') {
         const blob = await res.blob();
+        setTranslating(false);
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -44,6 +50,7 @@ export default function Home() {
         setTimeout(() => window.URL.revokeObjectURL(url), 1000);
         setUploadUrl('Download started!');
       } else {
+        setTranslating(false);
         let result: { message?: string } = {};
         try {
           result = await res.json();
@@ -53,13 +60,13 @@ export default function Home() {
         setError(result.message || 'Something went wrong.');
       }
     } catch (err) {
+      setUploading(false);
+      setTranslating(false);
       if (err instanceof Error) {
         setError('File upload failed: ' + err.message);
       } else {
         setError('File upload failed: Unknown error');
       }
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -77,10 +84,14 @@ export default function Home() {
             <input type="file"   name="scorm" onChange={handleFileChange} className="file:mr-4    file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700" />
             <button
               type="submit"
-              disabled={uploading}
+              disabled={uploading || translating}
               className="bg-blue-800 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
             >
-              {uploading ? 'Uploading...' : 'Upload'}
+              {uploading
+                ? 'Uploading...'
+                : translating
+                ? 'Translating...'
+                : 'Upload'}
             </button>
           </form>
 
