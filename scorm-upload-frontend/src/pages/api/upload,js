@@ -1,0 +1,37 @@
+import AWS from "aws-sdk";
+
+// Set up AWS S3 configuration
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
+});
+
+export default async function handler(req, res) {
+  if (req.method === "POST") {
+    try {
+      const { file } = req.body;
+
+      // Define the S3 upload parameters
+      const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `scorm-files/${file.name}`, // Customize the S3 path
+        Body: file.data,
+        ContentType: file.type,
+        ACL: "public-read", // Make file publicly accessible
+      };
+
+      // Upload file to S3
+      const data = await s3.upload(params).promise();
+
+      // Send success response with file URL
+      res
+        .status(200)
+        .json({ message: "File uploaded successfully", url: data.Location });
+    } catch (error) {
+      res.status(500).json({ message: "File upload failed", error });
+    }
+  } else {
+    res.status(405).json({ message: "Method not allowed" });
+  }
+}
