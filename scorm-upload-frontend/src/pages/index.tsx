@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import cors from 'cors';
+
 
 export default function Home() {
   const [file, setFile] = useState(null);
@@ -26,7 +26,7 @@ export default function Home() {
     setError(null);
 
     try {
-      const res = await fetch('http://127.0.0.1:3000/api/upload', {
+      const res = await fetch('process.env.NEXT_PUBLIC_API_URL/upload', {
         method: 'POST',
         body: formData,
       });

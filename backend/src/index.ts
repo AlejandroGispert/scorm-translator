@@ -5,11 +5,14 @@ import { globSync } from 'glob';
 import * as fs from 'fs';
 import path from 'path';
 import cors from 'cors';
-// To handle Node errors (like EPIPE)
+import dotenv from 'dotenv';
+dotenv.config();
 
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*'
+}));
 const upload = multer({ dest: 'uploads/' });
 
 app.post('/api/upload', upload.single('scorm'), async (req: Request, res: Response): Promise<void> => {

@@ -6,7 +6,15 @@
 # Node artifact files
 node_modules/
 dist/
+
+next
+# Next.js build output
+.next
 *.next
+
+.next/
+
+*.next/
 # Compiled Java class files
 *.class
 
@@ -48,3 +56,5 @@ Thumbs.db
 *.mov
 *.wmv
 
+# Environment variables
+.env
