@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Head from 'next/head';
 
 
 export default function Home() {
@@ -63,29 +64,35 @@ export default function Home() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-blue-700">
-      <div className="w-full max-w-md p-8 bg-white rounded shadow ">
-        <h1 className="text-2xl font-bold mb-6 text-center ">Upload SCORM File</h1>
+    <>
+      <Head>
+        <title>Scorm Upload Page</title>
+        <meta name="description" content="Created by Alejandro Gispert" />
+      </Head>
+      <div className="flex items-center justify-center min-h-screen bg-blue-700">
+        <div className="w-full max-w-md p-8 bg-white rounded shadow ">
+          <h1 className="text-2xl font-bold mb-6 text-center ">Upload SCORM File</h1>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 ">
-          <input type="file"   name="scorm" onChange={handleFileChange} className="file:mr-4    file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700" />
-          <button
-            type="submit"
-            disabled={uploading}
-            className="bg-blue-800 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {uploading ? 'Uploading...' : 'Upload'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 ">
+            <input type="file"   name="scorm" onChange={handleFileChange} className="file:mr-4    file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700" />
+            <button
+              type="submit"
+              disabled={uploading}
+              className="bg-blue-800 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              {uploading ? 'Uploading...' : 'Upload'}
+            </button>
+          </form>
 
-        {uploadUrl && (
-          <div className="mt-4 text-green-600 text-center">
-            <p>{uploadUrl}</p>
-          </div>
-        )}
+          {uploadUrl && (
+            <div className="mt-4 text-green-600 text-center">
+              <p>{uploadUrl}</p>
+            </div>
+          )}
 
-        {error && <p className="mt-4 text-red-600 text-center">{error}</p>}
+          {error && <p className="mt-4 text-red-600 text-center">{error}</p>}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
