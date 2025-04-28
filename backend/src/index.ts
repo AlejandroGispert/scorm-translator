@@ -45,18 +45,17 @@ app.post('/api/upload', upload.single('scorm'), async (req: Request, res: Respon
     console.log(`Found ${htmlFiles.length} HTML files:`, htmlFiles);
 
     // Step 4: Replace content in HTML files
-    htmlFiles.forEach(file => {
-      try {
-        let content = fs.readFileSync(file, 'utf8');
-        console.log(`Read file: ${file}`);
-        content = translateHtmlContent(content);
-        fs.writeFileSync(file, content, 'utf8');
-        console.log(`Updated content in: ${file}`);
-      } catch (fileError) {
-        console.error(`Error processing file ${file}:`, fileError);
+    for (const file of htmlFiles) {
+        try {
+          let content = fs.readFileSync(file, 'utf8');
+          console.log(`Read file: ${file}`);
+          content = await translateHtmlContent(content); // <-- await here
+          fs.writeFileSync(file, content, 'utf8');
+          console.log(`Updated content in: ${file}`);
+        } catch (fileError) {
+          console.error(`Error processing file ${file}:`, fileError);
+        }
       }
-    });
-
     // Step 5: Re-zip the folder
     const newZip = new AdmZip();
     function addDirToZip(dir: string, zipFolder = ''): void {
