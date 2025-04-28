@@ -1,0 +1,13 @@
+# bitbucket-pipelines.yml
+image: node:18
+
+pipelines:
+  default:
+    - step:
+        name: Build and Test
+        caches:
+          - node
+        script:
+          - npm install
+          - npm run build
+          # - npm test   # Uncomment if you have tests
