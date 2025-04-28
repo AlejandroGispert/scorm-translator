@@ -3,7 +3,10 @@ import { Node, Text } from 'domhandler';
 import fetch from 'node-fetch';
 
 export async function libreTranslate(text: string, targetLang = 'es'): Promise<string> {
-  console.log(`Translating text: "${text.slice(0, 30)}..." to ${targetLang}`); // Log small preview
+  
+    const fetch = (await import('node-fetch')).default; 
+  
+    console.log(`Translating text: "${text.slice(0, 30)}..." to ${targetLang}`); // Log small preview
 
   const res = await fetch('https://libretranslate.com/translate', {
     method: 'POST',
