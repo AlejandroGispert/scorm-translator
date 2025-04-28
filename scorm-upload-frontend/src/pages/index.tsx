@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import cors from 'cors';
 
 export default function Home() {
   const [file, setFile] = useState(null);
@@ -19,22 +20,35 @@ export default function Home() {
     }
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('scorm', file);
 
     setUploading(true);
     setError(null);
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch('http://127.0.0.1:3000/api/upload', {
         method: 'POST',
         body: formData,
       });
 
-      const result = await res.json();
-      
-      if (res.status === 200) {
-        setUploadUrl(result.url);
+      if (res.status === 200 && res.headers.get('content-type') === 'application/zip') {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'translated-scorm.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        setUploadUrl('Download started!');
       } else {
+        let result = {};
+        try {
+          result = await res.json();
+        } catch {
+          result = { message: await res.text() };
+        }
         setError(result.message || 'Something went wrong.');
       }
     } catch (err) {
@@ -50,7 +64,7 @@ export default function Home() {
         <h1 className="text-2xl font-bold mb-6 text-center ">Upload SCORM File</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 ">
-          <input type="file" onChange={handleFileChange} className="file:mr-4    file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700" />
+          <input type="file"   name="scorm" onChange={handleFileChange} className="file:mr-4    file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700" />
           <button
             type="submit"
             disabled={uploading}
@@ -62,10 +76,7 @@ export default function Home() {
 
         {uploadUrl && (
           <div className="mt-4 text-green-600 text-center">
-            <p>File uploaded successfully!</p>
-            <a href={uploadUrl} target="_blank" rel="noopener noreferrer" className="underline">
-              Download your SCORM file here.
-            </a>
+            <p>{uploadUrl}</p>
           </div>
         )}
 
