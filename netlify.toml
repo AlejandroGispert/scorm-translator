@@ -1,6 +1,7 @@
 [build]
+  base = "scorm-upload-frontend"
   command = "npm run build"
-  publish = "scorm-upload-frontend/.next"
+  publish = ".next"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
