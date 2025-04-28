@@ -8,7 +8,6 @@ pipelines:
           - apt-get update
           - apt-get install -y git
           - git clone https://ag-sound-admin@bitbucket.org/ag-sound/scorm-upload-project.git
-          - cd your-bitbucket-repo
           - git remote add github https://github.com/AlejandroGispert/scorm-translator.git
           - git config user.email "alejandrobusiness2022@gmail.com"
           - git config user.name "AlejandroGispert"
