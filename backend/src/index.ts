@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { translateHtmlContent } from './translateScormHtml'; // Adjust path if needed
 dotenv.config();
 
 
@@ -48,7 +49,7 @@ app.post('/api/upload', upload.single('scorm'), async (req: Request, res: Respon
       try {
         let content = fs.readFileSync(file, 'utf8');
         console.log(`Read file: ${file}`);
-        content = content.replace(/Check/g, 'hahahha');
+        content = translateHtmlContent(content);
         fs.writeFileSync(file, content, 'utf8');
         console.log(`Updated content in: ${file}`);
       } catch (fileError) {
