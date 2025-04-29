@@ -1,43 +1,44 @@
-import cheerio from 'cheerio';
+import { load } from 'cheerio';
 import { Node, Text } from 'domhandler';
-import fetch from 'node-fetch';
+import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate';
+import dotenv from 'dotenv';
+dotenv.config();
 
-export async function libreTranslate(text: string, targetLang = 'es'): Promise<string> {
-  
-    const fetch = (await import('node-fetch')).default; 
-  
-    console.log(`Translating text: "${text.slice(0, 30)}..." to ${targetLang}`); // Log small preview
+export const translateClient = new TranslateClient({
+  region: process.env.AWS_REGION!,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+export async function awsTranslate(text: string, targetLang = 'es'): Promise<string> {
+  console.log(`Translating text: "${text.slice(0, 30)}..." to ${targetLang}`);
 
-  const res = await fetch('https://libretranslate.com/translate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      q: text,
-      source: 'auto',
-      target: targetLang,
-      format: 'text'
-    })
+  const command = new TranslateTextCommand({
+    Text: text,
+    SourceLanguageCode: 'auto',
+    TargetLanguageCode: targetLang,
   });
 
-  if (!res.ok) {
-    console.error(`Translation API error: ${res.status} - ${res.statusText}`);
-    throw new Error(`Translation API error: ${res.statusText}`);
+  try {
+    const response = await translateClient.send(command);
+    const translated = response.TranslatedText ?? '';
+    console.log(`Translated: "${translated.slice(0, 30)}..."`);
+    return translated;
+  } catch (error) {
+    console.error('AWS Translate error:', error);
+    throw new Error('Failed to translate text');
   }
-
-  const data = await res.json() as { translatedText: string };
-  console.log(`Translated text: "${data.translatedText.slice(0, 30)}..."`);
-  return data.translatedText;
 }
 
 export async function translateHtmlContent(html: string, targetLang = 'es'): Promise<string> {
   console.log('Starting HTML translation process');
 
   if (typeof html !== 'string') {
-    console.error('Invalid HTML input detected');
     throw new TypeError('Expected html to be a string');
   }
 
-  const $ = cheerio.load(html);
+  const $ = load(html);
   const textNodes: Node[] = [];
 
   $('*').contents().each(function () {
@@ -48,24 +49,20 @@ export async function translateHtmlContent(html: string, targetLang = 'es'): Pro
 
   console.log(`Found ${textNodes.length} text nodes to translate.`);
 
-  let index = 0;
-  for (const node of textNodes) {
+  for (let i = 0; i < textNodes.length; i++) {
+    const node = textNodes[i];
     if (node.type === 'text' && 'data' in node) {
       try {
         const originalText = (node as Text).data!;
-        console.log(`Translating node ${index + 1}/${textNodes.length}: "${originalText.slice(0, 30)}..."`);
-
-        (node as Text).data = await libreTranslate(originalText, targetLang);
-
-        console.log(`Successfully translated node ${index + 1}`);
-      } catch (error) {
-        console.error(`Error translating node ${index + 1}:`, error);
+        const translated = await awsTranslate(originalText, targetLang);
+        (node as Text).data = translated;
+        console.log(`Translated node ${i + 1}/${textNodes.length}`);
+      } catch (err) {
+        console.error(`Error translating node ${i + 1}:`, err);
       }
     }
-    index++;
   }
 
   console.log('Completed HTML translation process');
-
   return $.html();
 }

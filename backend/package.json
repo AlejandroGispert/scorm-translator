@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-translate": "^3.798.0",
     "adm-zip": "^0.5.16",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
