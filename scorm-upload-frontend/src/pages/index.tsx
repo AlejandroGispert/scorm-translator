@@ -8,9 +8,15 @@ export default function Home() {
   const [translating, setTranslating] = useState(false);
   const [uploadUrl, setUploadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [downloadFinished, setDownloadFinished] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFile(e.target.files?.[0] || null);
+    setUploadUrl(null);
+    setError(null);
+    setDownloadFinished(false);
+    setUploading(false);
+    setTranslating(false);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -39,16 +45,19 @@ export default function Home() {
 
       if (res.status === 200 && res.headers.get('content-type') === 'application/zip') {
         const blob = await res.blob();
-        setTranslating(false);
+
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'translated-scorm.zip';
+        const originalName = file.name.replace(/\.zip$/i, '');
+        const filename = `translated-${originalName}.zip`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();
-        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-        setUploadUrl('Download started!');
+        window.URL.revokeObjectURL(url);
+        setDownloadFinished(true);
+        setUploadUrl('Download Started!');
       } else {
         setTranslating(false);
         let result: { message?: string } = {};
@@ -87,11 +96,13 @@ export default function Home() {
               disabled={uploading || translating}
               className="bg-blue-800 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
             >
-              {uploading
-                ? 'Uploading...'
-                : translating
-                ? 'Translating...'
-                : 'Upload'}
+              {downloadFinished
+                ? 'Done'
+                : uploading
+                  ? 'Uploading...'
+                  : translating
+                    ? 'Translating...'
+                    : 'Upload'}
             </button>
           </form>
 
@@ -102,6 +113,7 @@ export default function Home() {
           )}
 
           {error && <p className="mt-4 text-red-600 text-center">{error}</p>}
+
         </div>
       </div>
     </>
