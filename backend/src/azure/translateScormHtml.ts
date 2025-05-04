@@ -1,7 +1,10 @@
 import { load } from 'cheerio';
+import { Element as CheerioElement } from 'domhandler';
 import { Node, Text } from 'domhandler';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { TranslationEntry } from '../sendToExcelOnline';
+
 dotenv.config();
 
 const AZURE_TRANSLATOR_KEY = process.env.AZURE_TRANSLATOR_KEY!;
@@ -27,60 +30,56 @@ export async function azureTranslate(text: string, targetLang = 'es'): Promise<s
       responseType: 'json',
     });
 
-    const translated = response.data[0]?.translations[0]?.text ?? '';
-    console.log(`Translated: "${text.slice(0, 30)}..." → "${translated.slice(0, 30)}..."`);
-    return translated;
+    return response.data[0]?.translations[0]?.text ?? '';
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Azure Translate error:', error.response?.data || error.message);
-    } else {
-      console.error('Azure Translate unknown error:', error);
-    }
+    console.error('Azure Translate error:', error);
     throw new Error('Failed to translate text with Azure');
   }
 }
 
-export async function translateHtmlContent(html: string, targetLang = 'es'): Promise<string> {
-  console.log('Starting HTML translation process');
-
-  if (typeof html !== 'string') {
-    throw new TypeError('Expected html to be a string');
-  }
-
+export async function translateHtmlContent(
+  html: string,
+  fileName: string,
+  targetLang = 'es'
+): Promise<{ translatedHtml: string; entries: TranslationEntry[] }> {
   const $ = load(html);
-
-  // Exclude script, style, and meta content
   $('script, style, meta, noscript, link, title').remove();
 
-  const textNodes: Node[] = [];
+  const textNodes: Text[] = [];
+  const entries: TranslationEntry[] = [];
 
   $('*').contents().each(function () {
     if (
       this.type === 'text' &&
-      this.data &&
-      this.data.trim().length > 0 &&
+      'data' in this &&
+      this.data?.trim().length > 0 &&
       $(this).closest('script, style, meta, noscript').length === 0
     ) {
-      textNodes.push(this);
+      textNodes.push(this as Text);
     }
   });
 
-  console.log(`Found ${textNodes.length} text nodes to translate.`);
+  for (const node of textNodes) {
+    const originalText = node.data!;
+    const translatedText = await azureTranslate(originalText, targetLang);
+    node.data = translatedText;
 
-  for (let i = 0; i < textNodes.length; i++) {
-    const node = textNodes[i];
-    if (node.type === 'text' && 'data' in node) {
-      const originalText = (node as Text).data!;
-      try {
-        const translated = await azureTranslate(originalText, targetLang);
-        (node as Text).data = translated;
-        console.log(`✅ Translated node ${i + 1}/${textNodes.length}`);
-      } catch (err) {
-        console.error(`❌ Error translating node ${i + 1}:`, err);
-      }
-    }
+    const parentElement = $(node).parent().get(0);
+    const tagName =
+      parentElement && 'tagName' in parentElement
+        ? (parentElement as CheerioElement).tagName
+        : '';
+
+    entries.push({
+      fileName,
+      elementContext: tagName,
+      originalText,
+      translatedText,
+    });
   }
 
-  console.log('✅ Completed HTML translation process');
-  return $.html();
+  return {
+    translatedHtml: $.html(),
+    entries,
+  };
 }

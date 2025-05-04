@@ -5,8 +5,8 @@ dotenv.config();
 
 const config = {
   auth: {
+    authority: `https://login.microsoftonline.com/${process.env.MS_AUTHORITY}`,
     clientId: process.env.MS_CLIENT_ID!,
-    authority: process.env.MS_AUTHORITY,
     clientSecret:  process.env.MS_CLIENT_SECRET,
   },
 };

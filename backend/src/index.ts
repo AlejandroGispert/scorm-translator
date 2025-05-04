@@ -5,8 +5,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import uploadV1 from './routes/v1/upload';
 import uploadV2 from './routes/v2/upload';
-import { testAwsTranslate } from './startTests/testAwsTranslate';
-import { testMicrosoftTranslate } from './startTests/testMicrosoftTranslate';
+import { testAwsTranslate } from './aws/testAwsTranslate';
+import { testMicrosoftTranslate } from './azure/testMicrosoftTranslate';
 
 dotenv.config();
 
