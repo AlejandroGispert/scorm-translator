@@ -38,6 +38,7 @@ export default function Home() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL2}/upload`, {
         method: 'POST',
         body: formData,
+        credentials: 'include'
       });
 
       setUploading(false);
@@ -56,8 +57,37 @@ export default function Home() {
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
+
         setDownloadFinished(true);
-        setUploadUrl('Download Started!');
+        setUploadUrl('SCORM download started! Excel will download shortly...');
+
+
+      // ⏱️ Delay Excel download by 1 second
+      setTimeout(async () => {
+        try {
+          const excelRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL2}/download/excel`, {
+            credentials: 'include', // ✅ Include session cookie
+          });
+          
+          if (excelRes.ok) {
+            const excelBlob = await excelRes.blob();
+            const excelUrl = window.URL.createObjectURL(excelBlob);
+            const excelA = document.createElement('a');
+            excelA.href = excelUrl;
+            excelA.download = 'translated-content.xlsx';
+            document.body.appendChild(excelA);
+            excelA.click();
+            excelA.remove();
+            window.URL.revokeObjectURL(excelUrl);
+          } else {
+            console.error('Failed to download Excel file');
+          }
+        } catch (err) {
+          console.error('Excel download error:', err);
+        }
+      }, 1000);
+
+
       } else {
         setTranslating(false);
         let result: { message?: string } = {};
