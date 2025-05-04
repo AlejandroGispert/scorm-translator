@@ -12,14 +12,6 @@ const router = express.Router();
 const UPLOADS_DIR = path.join(__dirname, '../../uploads');
 const upload = multer({ dest: UPLOADS_DIR });
 
-declare module 'express-session' {
-  interface SessionData {
-    excelPath?: string;
-  }
-}
-
-
-
 
 interface MulterRequest extends Request {
   file: Express.Multer.File;
@@ -85,16 +77,6 @@ router.post('/upload', upload.single('scorm'), async (req: Request, res: Respons
       fs.writeFileSync(excelTempPath, excelBuffer);
       console.log('📄 Excel file saved:', excelTempPath);
 
-      if (req.session) {
-        req.session.excelPath = excelTempPath;
-        req.session.save((err) => {
-          if (err) {
-            console.error('❌ Failed to save session:', err);
-          } else {
-            console.log('💾 Excel path saved in session:', req.session.excelPath);
-          }
-        });
-      }
 
       const finalZipBuffer = finalZip.toBuffer();
       res.setHeader('Content-Disposition', 'attachment; filename="translated-scorm.zip"');

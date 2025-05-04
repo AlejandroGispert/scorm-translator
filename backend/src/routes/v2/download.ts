@@ -10,7 +10,7 @@ router.get('/download/excel', (req: Request, res: Response): void => {
   const fileName = 'ES-translated.xlsx'; // Excel file name
   const filePath = path.join(uploadsDir, fileName); // Construct the full file path
   
-  console.log('🔍 Session:', req.session);
+
   console.log('📄 File path:', filePath);
   
   // Validate the file exists before proceeding

@@ -7,7 +7,6 @@ import uploadV1 from './routes/v1/upload';
 import uploadV2 from './routes/v2/upload';
 import { testAwsTranslate } from './aws/testAwsTranslate';
 import { testMicrosoftTranslate } from './azure/testMicrosoftTranslate';
-import sessionMiddleware from './middleware/sessionMiddleware'; // adjust path as needed
 import downloadRouter from './routes/v2/download';
 dotenv.config();
 
@@ -21,13 +20,6 @@ app.use(cors({
   credentials: true    
 }));
 
-app.use(sessionMiddleware);
-
-app.use((req, res, next) => {
-  console.log('🔍 Session:', req.session);
-  next();
-
-});
 
 app.get('/', (_req: Request, res: Response) => {
   res.send(`<h1>Hello, Express + TypeScript!</h1>`);
