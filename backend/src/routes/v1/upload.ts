@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import AdmZip from 'adm-zip';
 import { globSync } from 'glob';
-import { translateHtmlContent } from '../../translateScormHtml';
+import { translateHtmlContent } from '../../aws/translateScormHtml';
 
 
 const router = express.Router();

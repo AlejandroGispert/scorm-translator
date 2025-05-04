@@ -1,10 +1,13 @@
 import { ConfidentialClientApplication } from '@azure/msal-node';
 
+import dotenv from 'dotenv'
+dotenv.config();
+
 const config = {
   auth: {
-    clientId: 'YOUR_CLIENT_ID',
-    authority: 'https://login.microsoftonline.com/YOUR_TENANT_ID',
-    clientSecret: 'YOUR_CLIENT_SECRET',
+    clientId: process.env.MS_CLIENT_ID!,
+    authority: process.env.MS_AUTHORITY,
+    clientSecret:  process.env.MS_CLIENT_SECRET,
   },
 };
 

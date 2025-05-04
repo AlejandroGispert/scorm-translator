@@ -1,6 +1,6 @@
 // testAwsTranslate.ts
 import { TranslateTextCommand } from '@aws-sdk/client-translate';
-import { translateClient } from '../translateScormHtml';
+import { translateClient } from '../aws/translateScormHtml';
 
 export const testAwsTranslate = async (): Promise<boolean> => {
   try {

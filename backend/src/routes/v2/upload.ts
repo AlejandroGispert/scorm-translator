@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import AdmZip from 'adm-zip';
 import { globSync } from 'glob';
-import { translateHtmlContent } from '../../translateScormHtml';
+import { translateHtmlContent } from '../../azure/translateScormHtml';
 import { getAccessToken } from '../../auth';
 import { createTranslationTableIfNotExists } from '../../createTranslationTableIfNotExists';
 import { sendTranslationsToExcel, TranslationEntry } from '../../sendToExcelOnline';
