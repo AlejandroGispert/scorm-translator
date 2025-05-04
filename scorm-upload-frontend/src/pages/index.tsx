@@ -19,7 +19,7 @@ export default function Home() {
              type="button"
               className="bg-blue-800  px-4 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
             >
-            version 1
+            version 1<br/>AWS
             </button>
             </Link>
 
@@ -28,7 +28,7 @@ export default function Home() {
               type="button"
               className="bg-blue-800 px-4 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
             >
-            version 2
+            version 2<br/>MSFT
             </button>
             </Link>
 
