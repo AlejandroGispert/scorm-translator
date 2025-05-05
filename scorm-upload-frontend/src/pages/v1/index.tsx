@@ -35,7 +35,7 @@ export default function Home() {
     setError(null);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL1}/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -85,7 +85,7 @@ export default function Home() {
         <title>Scorm Upload Page</title>
         <meta name="description" content="Created by Alejandro Gispert" />
       </Head>
-      <div className="flex items-center justify-center min-h-screen bg-blue-700">
+      <div className="flex items-center justify-center min-h-screen bg-yellow-700">
         <div className="w-full max-w-md p-8 bg-white rounded shadow ">
           <h1 className="text-2xl font-bold mb-6 text-center ">Upload SCORM File</h1>
 
