@@ -19,35 +19,47 @@ export default function Home() {
 
         <div className="w-full max-w-md p-8 bg-white rounded shadow flex flex-row gap-4 items-center">
           <h2 className="text-2xl font-bold text-center mb-4">Choose Version</h2>
-
+<div className='flex flex-col gap-4'>
           <Link href="/v1">
             <button
               type="button"
-              className="bg-blue-800 w-full px-4 text-white py-2 rounded hover:bg-blue-700 transition"
+              className="bg-blue-800  w-25 h-25 p-4 text-white  rounded hover:bg-blue-700 transition"
             >
-              version 1<br />AWS
+              version<br />1<br />AWS
             </button>
           </Link>
 
           <Link href="/v2">
             <button
               type="button"
-              className="bg-blue-800 w-full px-4 text-white py-2 rounded hover:bg-blue-700 transition"
+              className="bg-blue-800 w-25 h-25 p-4 text-white rounded hover:bg-blue-700 transition"
             >
-              version 2<br />MSFT
+              version<br />2<br />MSFT
             </button>
           </Link>
-
+          </div>
+          <div className='flex flex-col gap-4'>
           <Link href="/v3">
             <button
               type="button"
-              className="bg-blue-800 w-full px-4 text-white py-2 rounded hover:bg-blue-700 transition"
+              className="bg-blue-800 w-25 h-25 p-4 text-white  rounded hover:bg-blue-700 transition"
             >
               Upload<br />
               <br />
               Revision
             </button>
           </Link>
+          <Link href="/v4">
+            <button
+              type="button"
+              className="bg-blue-800  w-25 h-25 p-4  text-white  rounded hover:bg-blue-700 transition"
+            >
+              Upload<br />
+             
+              Revision
+              Preview
+            </button>
+          </Link></div>
         </div>
       </div>
     </>
