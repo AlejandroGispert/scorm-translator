@@ -23,7 +23,9 @@ const multiUpload = upload.fields([
   { name: 'scorm', maxCount: 1 },
   { name: 'excel', maxCount: 1 },
 ]);
-
+router.get('/revision/preview', (_req: Request, res: Response) => {
+  res.send(`<h1>POST request here to upload the file</h1>`);
+});
 router.post('/revision/preview', multiUpload, async (req: Request, res: Response): Promise<void> => {
   console.log('👀 Received /api/upload/revision/preview request');
 

@@ -7,6 +7,7 @@ import { globSync } from 'glob';
 import { translateHtmlContent } from '../../azure/translateScormHtml';
 import { getExcelBuffer } from '../../utils/exportToExcel';
 import { TranslationEntry } from '../../sendToExcelOnline';
+import { cleanupFiles } from '../../utils/cleanupUtils';
 
 const router = express.Router();
 const UPLOADS_DIR = path.join(__dirname, '../../../uploads');
@@ -46,17 +47,25 @@ router.post('/upload', upload.single('scorm'), async (req: Request, res: Respons
     console.log(`🔍 Found ${htmlFiles.length} HTML files to translate.`);
 
     for (const htmlFile of htmlFiles) {
+      const originalContent = fs.readFileSync(htmlFile, 'utf8');
       try {
-        const originalContent = fs.readFileSync(htmlFile, 'utf8');
         const { translatedHtml, entries } = await translateHtmlContent(originalContent, path.basename(htmlFile), outputLang);
+    
+        if (!translatedHtml || !entries) {
+          throw new Error(`Translation returned empty result for ${htmlFile}`);
+        }
+    
         fs.writeFileSync(htmlFile, translatedHtml, 'utf8');
         translationEntries.push(...entries);
         console.log(`✅ Translated: ${htmlFile}`);
-      } catch (fileError) {
-        console.error(`❌ Error processing file ${htmlFile}:`, fileError);
+      } catch (err) {
+        console.error(`❌ Azure Translation failed for file ${htmlFile}:`, err);
+        cleanupFiles(extractPath); // remove temp files if you want
+        res.status(500).send('Translation failed. Please check your internet connection or Azure credentials.');
+        return; // ⛔️ stop further processing
       }
     }
-
+    
     const finalZip = new AdmZip();
     const addDirToZip = (dir: string, zipFolder = ''): void => {
       fs.readdirSync(dir).forEach(file => {

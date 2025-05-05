@@ -37,16 +37,30 @@ interface RevisionEntry {
 const parseExcelRevisions = (filePath: string): RevisionEntry[] => {
   const workbook = XLSX.readFile(filePath);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const data = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+  const data: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
-  return data.map((row: any) => ({
-    fileName: row['File Name']?.trim(),
-    originalText: row['Original Text']?.toString(),
-    revision: row['Revision']?.toString(),
-  }));
+  return data.map((row: any): RevisionEntry => {
+    const fileName = (row['File Name'] || '').toString().trim();
+    const originalText = (row['Original Text'] || '').toString();
+    let revision = (row['Revision'] || '').toString().trim();
+
+    // Fallback to 'Translated' if 'Revision' is empty
+    if (!revision) {
+      revision = (row['Translated Text'] || '').toString().trim();
+    }
+
+    return {
+      fileName,
+      originalText,
+      revision,
+    };
+  });
 };
+router.get('/upload/revision', (req: Request, res: Response) => {
+    res.send(`<h1>POST request here to upload the file</h1>`);
+  });
 
-router.post('/revision', multiUpload, async (req: Request, res: Response): Promise<void> => {
+router.post('/upload/revision', multiUpload, async (req: Request, res: Response): Promise<void> => {
   console.log('📩 Received /api/upload/revision request');
 
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };

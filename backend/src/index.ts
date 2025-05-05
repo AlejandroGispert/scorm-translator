@@ -3,11 +3,15 @@ import express from 'express';
 import { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import uploadV1 from './routes/v1/upload';
-import uploadV2 from './routes/v2/upload';
+import uploadAWS from './routes/v1/upload';
+import uploadAzure from './routes/v2/upload';
+import revisionV3 from './routes/v3/revision';
+import previewV4 from './routes/v4/preview';
 import { testAwsTranslate } from './aws/testAwsTranslate';
 import { testMicrosoftTranslate } from './azure/testMicrosoftTranslate';
 import downloadRouter from './routes/v2/download';
+
+
 dotenv.config();
 
 const app = express();
@@ -35,11 +39,11 @@ app.use(cors({
 app.get('/', (_req: Request, res: Response) => {
   res.send(`<h1>Hello, Express + TypeScript!</h1>`);
 });
-app.use('/api/v1', uploadV1);
-app.use('/api/v2', uploadV2);
+app.use('/api/v1', uploadAWS);
+app.use('/api/v2', uploadAzure);
 app.use('/api/v2', downloadRouter);
-
-
+app.use('/api/v3', revisionV3);
+app.use('/api/v4', previewV4);
 
 
 const PORT = process.env.PORT || 3000;

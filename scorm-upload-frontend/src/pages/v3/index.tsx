@@ -22,51 +22,63 @@ export default function UploadRevision() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+  
     if (!scormFile || !excelFile) {
       setError('Both SCORM and Excel files are required.');
       return;
     }
-
+  
     if (scormFile.type !== 'application/zip' && !scormFile.name.endsWith('.zip')) {
       setError('SCORM file must be a .zip archive.');
       return;
     }
-
+  
     if (!excelFile.name.endsWith('.xlsx')) {
       setError('Excel file must be a .xlsx file.');
       return;
     }
-
+  
     const formData = new FormData();
     formData.append('scorm', scormFile);
     formData.append('excel', excelFile);
-
+  
     setUploading(true);
     setError(null);
-
+  
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL2}/upload/revision`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v3/upload/revision`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
       });
-
+  
       setUploading(false);
-
-      if (res.ok) {
-        setUploadUrl('Revision files uploaded successfully!');
+  
+      if (res.ok && res.headers.get('content-type') === 'application/zip') {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const filename = 'revision-pack.zip'; // Customize this as needed
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+  
+        setUploadUrl('Revision files downloaded successfully!');
         setScormFile(null);
         setExcelFile(null);
       } else {
         const result = await res.json();
-        setError(result.message || 'Upload failed.');
+        setError(result.message || 'Upload succeeded but no zip file received.');
       }
     } catch (err) {
       setUploading(false);
       setError(err instanceof Error ? err.message : 'Unknown upload error');
     }
   };
+  
 
   return (
     <>

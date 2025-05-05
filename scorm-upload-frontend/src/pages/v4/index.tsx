@@ -46,7 +46,7 @@ export default function UploadRevision() {
     setError(null);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL2}/upload/revision/preview`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v4/upload/revision/preview`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
