@@ -5,19 +5,22 @@ export default function UploadRevision() {
   const [scormFile, setScormFile] = useState<File | null>(null);
   const [excelFile, setExcelFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadUrl, setUploadUrl] = useState<string | null>(null);
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<any>(null); // New state for preview results
 
   const handleScormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setScormFile(e.target.files?.[0] || null);
-    setUploadUrl(null);
+    setUploadMessage(null);
     setError(null);
+    setPreviewData(null);
   };
 
   const handleExcelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setExcelFile(e.target.files?.[0] || null);
-    setUploadUrl(null);
+    setUploadMessage(null);
     setError(null);
+    setPreviewData(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -44,6 +47,8 @@ export default function UploadRevision() {
 
     setUploading(true);
     setError(null);
+    setUploadMessage(null);
+    setPreviewData(null);
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v4/upload/revision/preview`, {
@@ -55,7 +60,9 @@ export default function UploadRevision() {
       setUploading(false);
 
       if (res.ok) {
-        setUploadUrl('Revision files uploaded successfully!');
+        const result = await res.json();
+        setPreviewData(result);
+        setUploadMessage('Preview generated successfully!');
         setScormFile(null);
         setExcelFile(null);
       } else {
@@ -71,12 +78,12 @@ export default function UploadRevision() {
   return (
     <>
       <Head>
-        <title>Upload Revision Files</title>
-        <meta name="description" content="Upload both SCORM and Excel files for revision" />
+        <title>Upload Revision Files (Preview)</title>
+        <meta name="description" content="Upload SCORM and Excel files for revision preview" />
       </Head>
       <div className="flex items-center justify-center min-h-screen bg-red-700">
         <div className="w-full max-w-md p-8 bg-white rounded shadow">
-          <h1 className="text-2xl font-bold mb-6 text-center">Previewed Upload Revision Files</h1>
+          <h1 className="text-2xl font-bold mb-6 text-center">Preview Upload Revision Files</h1>
 
           <form onSubmit={handleSubmit}>
             <fieldset disabled={uploading} className="flex flex-col gap-4">
@@ -110,16 +117,25 @@ export default function UploadRevision() {
                 type="submit"
                 className="bg-yellow-800 text-white py-2 rounded hover:bg-yellow-700 transition disabled:opacity-50"
               >
-                {uploading ? 'Uploading...' : 'Upload Revision'}
+                {uploading ? 'Uploading...' : 'Upload & Preview'}
               </button>
             </fieldset>
           </form>
 
-          {uploadUrl && (
-            <p className="mt-4 text-green-600 text-center">{uploadUrl}</p>
+          {uploadMessage && (
+            <p className="mt-4 text-green-600 text-center">{uploadMessage}</p>
           )}
           {error && (
             <p className="mt-4 text-red-600 text-center">{error}</p>
+          )}
+
+          {previewData && (
+            <div className="mt-6 bg-gray-100 p-4 rounded">
+              <h2 className="text-lg font-semibold mb-2 text-gray-800">Preview Results</h2>
+              <pre className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                {JSON.stringify(previewData, null, 2)}
+              </pre>
+            </div>
           )}
         </div>
       </div>

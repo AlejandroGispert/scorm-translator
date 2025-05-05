@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import AdmZip from 'adm-zip';
 import { globSync } from 'glob';
+import xlsx from 'xlsx';
 
 const router = express.Router();
 const UPLOADS_DIR = path.join(__dirname, '../../../uploads');
@@ -23,10 +24,12 @@ const multiUpload = upload.fields([
   { name: 'scorm', maxCount: 1 },
   { name: 'excel', maxCount: 1 },
 ]);
-router.get('/revision/preview', (_req: Request, res: Response) => {
+
+router.get('/upload/revision/preview', (_req: Request, res: Response) => {
   res.send(`<h1>POST request here to upload the file</h1>`);
 });
-router.post('/revision/preview', multiUpload, async (req: Request, res: Response): Promise<void> => {
+
+router.post('/upload/revision/preview', multiUpload, async (req: Request, res: Response): Promise<void> => {
   console.log('👀 Received /api/upload/revision/preview request');
 
   const { files } = req as MulterRequest;
@@ -87,12 +90,59 @@ router.post('/revision/preview', multiUpload, async (req: Request, res: Response
   } catch (error) {
     console.error('❌ Error generating preview:', error);
     res.status(500).json({ message: 'Failed to generate revision preview.' });
+  } finally {
+    // Clean up uploaded files
+    try {
+      fs.unlinkSync(scormFile.path);
+      fs.unlinkSync(excelFile.path);
+    } catch (err) {
+      console.warn('⚠️ Failed to clean up temporary files:', err);
+    }
   }
 });
 
-// Stub: implement your Excel parsing logic
+// Parses Excel file for revisions
 function parseExcelRevisions(excelFilePath: string): RevisionEntry[] {
-  return []; // To be implemented
+  try {
+    const workbook = xlsx.readFile(excelFilePath);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(sheet, { header: 1 }) as string[][];
+
+    const headers = data[0].map(h => h?.toString().trim().toLowerCase());
+
+    const fileNameIdx = headers.indexOf('file name');
+    const originalTextIdx = headers.indexOf('original text');
+    const revisionIdx = headers.indexOf('revision');
+    const translatedIdx = headers.indexOf('translated text'); // for fallback
+
+    if (fileNameIdx === -1 || originalTextIdx === -1) {
+      throw new Error('Excel file is missing required columns: File Name, Original Text');
+    }
+
+    const entries: RevisionEntry[] = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const fileName = row[fileNameIdx]?.toString().trim();
+      const originalText = row[originalTextIdx]?.toString().trim();
+      let revision = row[revisionIdx]?.toString().trim() || '';
+
+      // Fallback to Translated Text if Revision is missing
+      if (!revision && translatedIdx !== -1) {
+        revision = row[translatedIdx]?.toString().trim() || '';
+      }
+
+      if (fileName && originalText && revision) {
+        entries.push({ fileName, originalText, revision });
+      }
+    }
+
+    return entries;
+  } catch (err) {
+    console.error('❌ Error parsing Excel:', err);
+    return [];
+  }
 }
+
 
 export default router;
