@@ -6,7 +6,7 @@ import { cleanupFiles } from '../../utils/cleanupUtils'; // Import cleanup funct
 const router = express.Router();
 
 router.get('/download/excel', (req: Request, res: Response): void => {
-  const uploadsDir = path.join(__dirname, '../../uploads');
+  const uploadsDir = path.join(__dirname, '../../../uploads');
   const fileName = 'ES-translated.xlsx'; // Excel file name
   const filePath = path.join(uploadsDir, fileName);
 
@@ -31,8 +31,8 @@ router.get('/download/excel', (req: Request, res: Response): void => {
     // Clean up the file after download
     stream.on('close', () => {
       console.log(`✅ Download completed: ${fileName}`);
-      cleanupFiles(filePath); 
-      cleanupFiles(path.join(uploadsDir, 'extracted-files'));
+    
+      cleanupFiles(uploadsDir);
     });
 
     // Handle potential stream errors

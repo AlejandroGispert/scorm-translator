@@ -1,28 +1,33 @@
-// src/utils/cleanupUtils.ts
+// src/utils/cleanupUtils.tsimport fs from 'fs';
+import path from 'path';
 
 import fs from 'fs';
 
-export function cleanupFiles(...paths: string[]): void {
-  console.log('🧹 Starting cleanup...'); // Log to confirm cleanup is starting
-
-  for (const filePath of paths) {
-    try {
-      console.log(`🔍 Checking file/directory: ${filePath}`);
+export const cleanupFiles = (dirPath: string): void => {
+  try {
+    // Check if the directory exists
+    if (fs.existsSync(dirPath)) {
+      // Get all files and directories inside the directory
+      const files = fs.readdirSync(dirPath);
       
-      if (fs.existsSync(filePath)) {
-        const stat = fs.statSync(filePath);
+      // Loop through each item and delete it
+      files.forEach(file => {
+        const fullPath = path.join(dirPath, file);
+        const stat = fs.lstatSync(fullPath);
+
         if (stat.isDirectory()) {
-          fs.rmSync(filePath, { recursive: true, force: true });
-          console.log(`🧹 Cleaned up directory: ${filePath}`);
+          cleanupFiles(fullPath); // If it's a directory, call cleanup recursively
+          fs.rmdirSync(fullPath); // Remove the directories after cleaning up
         } else {
-          fs.unlinkSync(filePath);
-          console.log(`🧹 Cleaned up file: ${filePath}`);
+          fs.unlinkSync(fullPath); // If it's a file, delete it
         }
-      } else {
-        console.log(`⚠️ File/Directory not found: ${filePath}`);
-      }
-    } catch (err) {
-      console.error(`❌ Error deleting ${filePath}:`, err);
+      });
+
+      console.log(`✅ Cleanup successful for directory: ${dirPath}`);
+    } else {
+      console.warn(`⚠️ Directory not found for cleanup: ${dirPath}`);
     }
+  } catch (err) {
+    console.error('❌ Error during cleanup:', err);
   }
-}
+};
