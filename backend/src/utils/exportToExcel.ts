@@ -21,7 +21,7 @@ export async function getExcelBuffer(
     { header: 'Element Context', key: 'elementContext', width: 30 },
     { header: 'Original Text', key: 'originalText', width: 40 },
     { header: 'Translated Text', key: 'translatedText', width: 40 },
-    { header: 'Revision', key: 'revision', width: 20 },
+    { header: 'Revision', key: 'revision', width: 30 },
   ];
 
     // Apply styles to header row
