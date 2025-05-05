@@ -24,11 +24,23 @@ export async function getExcelBuffer(
     { header: 'Revision', key: 'revision', width: 20 },
   ];
 
+    // Apply styles to header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell(cell => {
+      cell.font = { bold: true, color: { argb: '00000' } };  
+      cell.alignment = { horizontal: 'center' }; 
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '00FF00' } };  
+    });
+
   entries.forEach(entry => {
+
+    const trimmedOriginalText = entry.originalText.trim();
+
+
     worksheet.addRow({
       fileName: entry.fileName,
       elementContext: entry.elementContext,
-      originalText: entry.originalText,
+      originalText: trimmedOriginalText,
       translatedText: entry.translatedText,
       revision: entry.revision || '',
     });

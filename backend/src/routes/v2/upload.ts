@@ -9,9 +9,8 @@ import { getExcelBuffer } from '../../utils/exportToExcel';
 import { TranslationEntry } from '../../sendToExcelOnline';
 
 const router = express.Router();
-const UPLOADS_DIR = path.join(__dirname, '../../uploads');
+const UPLOADS_DIR = path.join(__dirname, '../../../uploads');
 const upload = multer({ dest: UPLOADS_DIR });
-
 
 interface MulterRequest extends Request {
   file: Express.Multer.File;
@@ -36,6 +35,7 @@ router.post('/upload', upload.single('scorm'), async (req: Request, res: Respons
   const translationEntries: TranslationEntry[] = [];
 
   try {
+    // Create a folder to extract the ZIP content
     fs.mkdirSync(extractPath, { recursive: true });
     const zip = new AdmZip(zipPath);
     zip.extractAllTo(extractPath, true);
@@ -56,6 +56,7 @@ router.post('/upload', upload.single('scorm'), async (req: Request, res: Respons
       }
     }
 
+    // Create the final ZIP file
     const finalZip = new AdmZip();
     const addDirToZip = (dir: string, zipFolder = ''): void => {
       fs.readdirSync(dir).forEach(file => {
@@ -71,12 +72,12 @@ router.post('/upload', upload.single('scorm'), async (req: Request, res: Respons
     addDirToZip(extractPath);
     console.log('📁 Final ZIP created.');
 
+    // Generate and save the Excel file with translation entries
     try {
       const { buffer: excelBuffer, fileName: excelName } = await getExcelBuffer(translationEntries, 'es');
       const excelTempPath = path.join(UPLOADS_DIR, `${excelName}`);
       fs.writeFileSync(excelTempPath, excelBuffer);
       console.log('📄 Excel file saved:', excelTempPath);
-
 
       const finalZipBuffer = finalZip.toBuffer();
       res.setHeader('Content-Disposition', 'attachment; filename="translated-scorm.zip"');
@@ -94,6 +95,5 @@ router.post('/upload', upload.single('scorm'), async (req: Request, res: Respons
     res.status(500).send('Failed to process the uploaded SCORM package.');
   }
 });
-
 
 export default router;
