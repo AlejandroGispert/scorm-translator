@@ -68,7 +68,7 @@ export default function Home() {
         const a = document.createElement('a');
         a.href = url;
         const originalName = file.name.replace(/\.zip$/i, '');
-        const filename = `translated-${originalName}.zip`;
+        const filename = `${outputLang.toUpperCase()}-translated-${originalName}.zip`;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
