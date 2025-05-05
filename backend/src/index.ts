@@ -13,11 +13,22 @@ dotenv.config();
 const app = express();
 
 
+const allowedOrigins = [
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+  process.env.CORS_ORIGIN
+].filter(Boolean);
 
-const isDev = process.env.NODE_ENV !== 'production';
 app.use(cors({
-  origin: isDev ? 'http://localhost:3001' : process.env.CORS_ORIGIN,
-  credentials: true    
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like curl or Postman) or from allowed origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 
 
