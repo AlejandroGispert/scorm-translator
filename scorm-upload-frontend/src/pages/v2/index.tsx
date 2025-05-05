@@ -80,16 +80,18 @@ export default function Home() {
 
         setTimeout(async () => {
           try {
-            const excelRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL2}/download/excel`, {
-              credentials: 'include',
-            });
-
+            const excelRes = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL2}/download/excel?outputLang=${outputLang}`,
+              { credentials: 'include' }
+            );
+        
             if (excelRes.ok) {
               const excelBlob = await excelRes.blob();
               const excelUrl = window.URL.createObjectURL(excelBlob);
               const excelA = document.createElement('a');
               excelA.href = excelUrl;
-              excelA.download = 'translated-content.xlsx';
+              const excelFilename = `${outputLang.toUpperCase()}-translated-${originalName}-review.xlsx`;
+              excelA.download = excelFilename;
               document.body.appendChild(excelA);
               excelA.click();
               excelA.remove();
