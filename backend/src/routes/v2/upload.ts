@@ -7,6 +7,7 @@ import { globSync } from 'glob';
 import { translateHtmlContent } from '../../azure/translateScormHtml';
 import { getExcelBuffer } from '../../utils/exportToExcel';
 import { TranslationEntry } from '../../sendToExcelOnline';
+import { cleanupFiles } from '../../utils/cleanupUtils';
 
 const router = express.Router();
 const UPLOADS_DIR = path.join(__dirname, '../../../uploads');
@@ -19,10 +20,10 @@ interface MulterRequest extends Request {
 router.get('/upload', (_req: Request, res: Response) => {
   res.send(`<h1>POST request here to upload the file</h1>`);
 });
-
 router.post('/upload', upload.single('scorm'), async (req: Request, res: Response): Promise<void> => {
   console.log('📩 Received /api/upload request');
   const file = (req as MulterRequest).file;
+  const outputLang = (req.body.outputLang || 'es').toString(); 
 
   if (!file?.path) {
     console.error('❌ No file uploaded or invalid file path.');
@@ -30,12 +31,13 @@ router.post('/upload', upload.single('scorm'), async (req: Request, res: Respons
     return;
   }
 
+  const langCode = outputLang.toUpperCase();
+  const originalName = file.originalname.replace(/\.zip$/i, '').replace(/\s+/g, '-');
   const zipPath = file.path;
   const extractPath = path.join(UPLOADS_DIR, Date.now().toString());
   const translationEntries: TranslationEntry[] = [];
 
   try {
-    // Create a folder to extract the ZIP content
     fs.mkdirSync(extractPath, { recursive: true });
     const zip = new AdmZip(zipPath);
     zip.extractAllTo(extractPath, true);
@@ -45,18 +47,25 @@ router.post('/upload', upload.single('scorm'), async (req: Request, res: Respons
     console.log(`🔍 Found ${htmlFiles.length} HTML files to translate.`);
 
     for (const htmlFile of htmlFiles) {
+      const originalContent = fs.readFileSync(htmlFile, 'utf8');
       try {
-        const originalContent = fs.readFileSync(htmlFile, 'utf8');
-        const { translatedHtml, entries } = await translateHtmlContent(originalContent, path.basename(htmlFile), 'es');
+        const { translatedHtml, entries } = await translateHtmlContent(originalContent, path.basename(htmlFile), outputLang);
+    
+        if (!translatedHtml || !entries) {
+          throw new Error(`Translation returned empty result for ${htmlFile}`);
+        }
+    
         fs.writeFileSync(htmlFile, translatedHtml, 'utf8');
         translationEntries.push(...entries);
         console.log(`✅ Translated: ${htmlFile}`);
-      } catch (fileError) {
-        console.error(`❌ Error processing file ${htmlFile}:`, fileError);
+      } catch (err) {
+        console.error(`❌ Azure Translation failed for file ${htmlFile}:`, err);
+        cleanupFiles(extractPath); // remove temp files if you want
+        res.status(500).send('Translation failed. Please check your internet connection or Azure credentials.');
+        return; // ⛔️ stop further processing
       }
     }
-
-    // Create the final ZIP file
+    
     const finalZip = new AdmZip();
     const addDirToZip = (dir: string, zipFolder = ''): void => {
       fs.readdirSync(dir).forEach(file => {
@@ -70,26 +79,19 @@ router.post('/upload', upload.single('scorm'), async (req: Request, res: Respons
       });
     };
     addDirToZip(extractPath);
-    console.log('📁 Final ZIP created.');
 
-    // Generate and save the Excel file with translation entries
-    try {
-      const { buffer: excelBuffer, fileName: excelName } = await getExcelBuffer(translationEntries, 'es');
-      const excelTempPath = path.join(UPLOADS_DIR, `${excelName}`);
-      fs.writeFileSync(excelTempPath, excelBuffer);
-      console.log('📄 Excel file saved:', excelTempPath);
+    const { buffer: excelBuffer, fileName: excelName } = await getExcelBuffer(translationEntries, outputLang);
+    const excelTempPath = path.join(UPLOADS_DIR, `${excelName}`);
+    fs.writeFileSync(excelTempPath, excelBuffer);
 
-      const finalZipBuffer = finalZip.toBuffer();
-      res.setHeader('Content-Disposition', 'attachment; filename="translated-scorm.zip"');
-      res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Length', finalZipBuffer.length.toString());
-      res.send(finalZipBuffer);
-      console.log('📤 SCORM ZIP sent to client.');
-    } catch (excelErr) {
-      console.error('❌ Error creating or sending Excel/ZIP:', excelErr);
-      res.status(500).send('Failed to prepare translated SCORM package.');
-    }
+    const finalZipBuffer = finalZip.toBuffer();
+    const translatedFilename = `${langCode}-translated-${originalName}.zip`;
 
+    res.setHeader('Content-Disposition', `attachment; filename="${translatedFilename}"`);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Length', finalZipBuffer.length.toString());
+    res.send(finalZipBuffer);
+    console.log(`📤 Sent: ${translatedFilename}`);
   } catch (error) {
     console.error('❌ Failed to process uploaded SCORM package.', error);
     res.status(500).send('Failed to process the uploaded SCORM package.');

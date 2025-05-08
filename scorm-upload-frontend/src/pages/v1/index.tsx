@@ -35,7 +35,7 @@ export default function Home() {
     setError(null);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL1}/upload`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/upload`, {
         method: 'POST',
         body: formData,
       });
