@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
-import { fetchSupportedLanguages, LanguageOption } from '../lib/languageService';
+import { fetchSupportedLanguages, LanguageOption } from '../../../lib/languageService';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
